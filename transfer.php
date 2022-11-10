@@ -16,11 +16,11 @@ echo "Setting everything up started...\n";
 require_once(dirname(__FILE__).'/vendor/autoload.php');
 
 // Activate maintenance mode
-//$process = new Process(['php', '-d', 'apc.enable_cli=1', $PATH_NEXTCLOUD . DIRECTORY_SEPARATOR . 'occ', 'maintenance:mode', '--on']);
-//$process->run();
-//if (!$process->isSuccessful()) {
-//    throw new ProcessFailedException($process);
-//}
+$process = new Process(['php', '-d', 'apc.enable_cli=1', $PATH_NEXTCLOUD . DIRECTORY_SEPARATOR . 'occ', 'maintenance:mode', '--on']);
+$process->run();
+if (!$process->isSuccessful()) {
+    throw new ProcessFailedException($process);
+}
 
 // First load the nextcloud config
 include($PATH_NEXTCLOUD.'/config/config.php');
