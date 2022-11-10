@@ -1,5 +1,12 @@
 # Nextcloud S3 to local storage migration script :cloud: :floppy_disk:
 
+## Edits By Baggypants
+
+- The occ settings have been reordered for Nextcloud23
+- The s3 url now checks the port that has been set from the config, and is hardcoded to use http instead of https.
+
+## Upstream Docs
+
 At the time of writing this script using S3 based primary storage in [Nextcloud](https://nextcloud.com/) does not work very well.
 Still you might have configured your Nextcloud to use S3 based primary storage as indicated [here](https://docs.nextcloud.com/server/17/admin_manual/configuration_files/primary_storage.html). But what if you want to switch to local primary storage?
 
