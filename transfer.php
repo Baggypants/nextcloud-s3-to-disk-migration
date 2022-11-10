@@ -6,9 +6,9 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
 // Note: Preferably use absolute path without trailing directory separators
-$PATH_NEXTCLOUD =  '/var/www/nextcloud/public'; // Path of the main Nextcloud directory
-$PATH_DATA = '/var/www/nextcloud/private'; // Path of the new Nextcloud data directory
-$PATH_BACKUP = '~/nextcloud-backup'; // Path for backup of MySQL database
+$PATH_NEXTCLOUD =  '/var/www/html/nextcloud'; // Path of the main Nextcloud directory
+$PATH_DATA = '/var/www/ncq-data/backup-folder/'; // Path of the new Nextcloud data directory
+$PATH_BACKUP = '/var/www/transmission/'; // Path for backup of MySQL database
 
 echo "Setting everything up started...\n";
 
@@ -16,11 +16,11 @@ echo "Setting everything up started...\n";
 require_once(dirname(__FILE__).'/vendor/autoload.php');
 
 // Activate maintenance mode
-$process = new Process(['php', $PATH_NEXTCLOUD . DIRECTORY_SEPARATOR . 'occ', 'maintenance:mode', '--on']);
-$process->run();
-if (!$process->isSuccessful()) {
-    throw new ProcessFailedException($process);
-}
+//$process = new Process(['php', '-d', 'apc.enable_cli=1', $PATH_NEXTCLOUD . DIRECTORY_SEPARATOR . 'occ', 'maintenance:mode', '--on']);
+//$process->run();
+//if (!$process->isSuccessful()) {
+//    throw new ProcessFailedException($process);
+//}
 
 // First load the nextcloud config
 include($PATH_NEXTCLOUD.'/config/config.php');
@@ -44,7 +44,7 @@ copy($PATH_NEXTCLOUD.'/config/config.php', $PATH_BACKUP.'/config.php');
 // S3 setup
 $s3 = new S3Client([
     'version' => 'latest',
-    'endpoint' => 'https://'.$CONFIG['objectstore']['arguments']['bucket'].'.'.$CONFIG['objectstore']['arguments']['hostname'],
+    'endpoint' => 'http://'.$CONFIG['objectstore']['arguments']['bucket'].'.'.$CONFIG['objectstore']['arguments']['hostname'].':'.$CONFIG['objectstore']['arguments']['port'],
     'bucket_endpoint' => true,
     'region'  => $CONFIG['objectstore']['arguments']['region'],
     'credentials' => [
@@ -160,6 +160,12 @@ echo "Modifying database finished\n";
 
 echo "Doing final adjustments started...\n";
 
+// Deactivate maintenance mode
+$process = new Process(['php', $PATH_NEXTCLOUD . DIRECTORY_SEPARATOR . 'occ', 'maintenance:mode', '--off']);
+$process->run();
+if (!$process->isSuccessful()) {
+    throw new ProcessFailedException($process);
+}
 // Update config file
 $process = new Process(['php', $PATH_NEXTCLOUD . DIRECTORY_SEPARATOR . 'occ', 'config:system:set', 'datadirectory', '--value="'.$PATH_DATA.'"']);
 $process->run();
@@ -185,12 +191,6 @@ if (!$process->isSuccessful()) {
     throw new ProcessFailedException($process);
 }
 
-// Deactivate maintenance mode
-$process = new Process(['php', $PATH_NEXTCLOUD . DIRECTORY_SEPARATOR . 'occ', 'maintenance:mode', '--off']);
-$process->run();
-if (!$process->isSuccessful()) {
-    throw new ProcessFailedException($process);
-}
 
 echo "Doing final adjustments finished\n";
 
